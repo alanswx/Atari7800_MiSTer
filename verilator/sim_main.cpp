@@ -854,15 +854,18 @@ static int clkdiv=3;
 			pix_count++;
 
 			// Write VGA output to a file. RAW RGB!
-			rgb[0] = top->VGA_R << 4;	// GBA core outputs 4 bits per VGA colour channel (12 bpp).
-			rgb[1] = top->VGA_G << 4;
-			rgb[2] = top->VGA_B << 4;
+			rgb[0] = top->VGA_B ;	// GBA core outputs 4 bits per VGA colour channel (12 bpp).
+			rgb[1] = top->VGA_G ;
+			rgb[2] = top->VGA_R ;
 			//fwrite(rgb, 1, 3, vgap);		// Write 24-bit values to the file.
 			uint32_t vga_addr = (line_count * 1024) + pix_count;
 			if (vga_addr <= vga_size) vga_ptr[vga_addr] = (rgb[0] << 16) | (rgb[1] << 8) | (rgb[2] << 0);
 			
-			disp_ptr[vga_addr] = rgb[0] << 24 | rgb[1] << 16 | rgb[2] << 8;	// Our debugger framebuffer is in the 32-bit RGBA format.
-			fprintf(stderr,"vga_addr: %d %d %d %x\n",vga_addr,line_count,pix_count,disp_ptr[vga_addr]);
+			
+			//disp_ptr[vga_addr] = rgb[0] << 24 | rgb[1] << 16 | rgb[2] << 8;	// Our debugger framebuffer is in the 32-bit RGBA format.
+			disp_ptr[vga_addr] = 0xFF000000 | rgb[0] << 16 | rgb[1] << 8 | rgb[2] ;	// Our debugger framebuffer is in the 32-bit RGBA format.
+			//fprintf(stderr,"vga_addr: %d %d %d %x\n",vga_addr,line_count,pix_count,disp_ptr[vga_addr]);
+			//fprintf(stderr,"vga: %x %x %x\n",rgb[0],rgb[1],rgb[1]);
 
 				 // (line_count * width) + pixel_count.
 			//uint32_t disp_addr = (top->gba_top__DOT__gfx__DOT__gfx__DOT__vcount * 240) + top->gba_top__DOT__gfx__DOT__gfx__DOT__hcount;

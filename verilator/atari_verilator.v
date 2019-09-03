@@ -76,7 +76,20 @@ wire [7:0]  ioctl_index;
 
 wire [15:0] joy0,joy1;
 
+/*
+reg [7:0]RR=8'b0;
+reg [7:0]GG=8'b0;
+reg [7:0]BB=8'b11111111;
+assign VGA_R=RR;
+assign VGA_G=GG;
+assign VGA_B=BB;
 wire [7:0] VGA_R2;
+wire [7:0] VGA_G2;
+wire [7:0] VGA_B2;
+always @(posedge clk_sys) begin
+	$display("vga: %x %x %x", VGA_R,VGA_G,VGA_B);
+end
+*/
 
 Atari7800 main
 (
