@@ -54,8 +54,10 @@ static ID3D11BlendState*        g_pBlendState = NULL;
 static ID3D11DepthStencilState* g_pDepthStencilState = NULL;
 static int                      g_VertexBufferSize = 5000, g_IndexBufferSize = 10000;
 #endif
+
+
 // Instantiation of module.
-Vtop* top = new Vtop;
+Vtop* top = NULL;
 
 char my_string[1024];
 int str_i = 0;
@@ -120,6 +122,9 @@ bool run_enable = 0;
 bool single_step = 0;
 bool multi_step = 0;
 int multi_step_amount = 1024;
+
+void ioctl_download_before_eval(void);
+void ioctl_download_after_eval(void);
 
 
 #ifdef WINDOWS
@@ -617,16 +622,16 @@ int verilate() {
 			top->reset = 0;		// Deassert reset.
 		}
 		if ((main_time & 1) == 0) {
-			top->gba_clk = 0;       // Toggle clock
+			top->clk_sys = 0;       // Toggle clock
 			//top->clk_100 = 0;
 			//top->clk_256 = 0;
-			top->vga_clk = 0;				
+			top->clk_vid = 0;				
 		}
 		if ((main_time & 1) == 1) {
-			top->gba_clk = 1;
+			top->clk_sys = 1;
 			//top->clk_100 = 1;
 			//top->clk_256 = 1;
-			top->vga_clk = 1;
+			top->clk_vid = 1;
 
 #if 0
 			if (top->bus_system_read && top->bus_mem_addr>>2 < bios_size)  {
@@ -807,7 +812,7 @@ int verilate() {
 			}
 			*/
 
-			old_pc = top->gba_top__DOT__cpu__DOT__cpu__DOT__RegFile_PCOut;
+//			old_pc = top->gba_top__DOT__cpu__DOT__cpu__DOT__RegFile_PCOut;
 			if (0  /*top->bus_io_reg_read AJS *//*&& top->bus_mem_addr != old_hw_addr*/) {
 				unsigned int my_data;
 #if 0
@@ -828,7 +833,7 @@ int verilate() {
 					default:         sprintf(my_string, "         (PC=0x%08X) (data=0x%08X)\n", top->gba_top__DOT__cpu__DOT__cpu__DOT__RegFile_PCOut, my_data); console.AddLog(my_string); break;
 				}
 #endif
-				sprintf(my_string, "bus_addr_lat1=0x%08X\n", top->gba_top__DOT__mem__DOT__bus_addr_lat1); console.AddLog(my_string);
+//				sprintf(my_string, "bus_addr_lat1=0x%08X\n", top->gba_top__DOT__mem__DOT__bus_addr_lat1); console.AddLog(my_string);
 			}
 
 			//if (top->bus_io_reg_read) old_hw_addr = top->bus_mem_addr;
@@ -942,7 +947,18 @@ int verilate() {
 			//if (top->VGA_R > 0 || top->VGA_G > 0 || top->VGA_B > 0) printf("VGA is High!!!\n");
 		}
 
+
+	ioctl_download_before_eval();
+
+
+
+
 		top->eval();            // Evaluate model!
+
+	ioctl_download_after_eval();
+
+
+
 
 		main_time++;            // Time passes...
 
@@ -955,6 +971,55 @@ int verilate() {
 	return 0;
 }
 
+FILE *ioctl_file=NULL;
+int ioctl_next_addr = 0x0;
+void ioctl_download_setfile(char *file, int index)
+{
+	ioctl_next_addr = 0x0;
+	top->ioctl_index = index;
+    ioctl_file=fopen(file,"rb");
+    if (!ioctl_file) printf("error opening %s\n",file);
+}
+void ioctl_download_before_eval()
+{
+	if (ioctl_file) {
+	    if (top->ioctl_wait==0) {
+	    top->ioctl_download=1;
+	    
+	    if (feof(ioctl_file)) {
+		    fclose(ioctl_file);
+		    ioctl_file=NULL;
+			top->ioctl_download=0;
+			printf("finished upload\n");
+
+	    }
+	    if (ioctl_file) {
+	    	int curchar = fgetc(ioctl_file);
+		
+	    if (curchar!=EOF) {
+	    	top->ioctl_dout=(char)curchar;
+	    	ioctl_next_addr++;
+	    }
+	    }
+	}
+	else top->ioctl_download=0;
+	}
+}
+void ioctl_download_after_eval()
+{
+    top->ioctl_addr=ioctl_next_addr;
+}
+
+void start_load_rom() {
+printf("load rom here\n");
+ ioctl_download_setfile("../release-WIP/boot.rom",0);
+
+}
+
+void start_load_cart() {
+printf("load cart here\n");
+ ioctl_download_setfile("../release-WIP/asteroids.a78",1);
+}
 
 int my_count = 0;
 
@@ -986,6 +1051,7 @@ int main(int argc, char** argv, char** env) {
         printf("Error: %s\n", SDL_GetError());
         return -1;
     }
+ top = new Vtop();
 
     // Setup window
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -1179,6 +1245,7 @@ int main(int argc, char** argv, char** env) {
 
 		ShowExampleAppConsole(&show_app_console);
 
+#if 0
 		if (!bios_rom_loaded) {
 			FILE *biosfile;
 			const char* bios_filename = "gbabios.bin";
@@ -1196,8 +1263,8 @@ int main(int argc, char** argv, char** env) {
 			}
 			bios_rom_loaded = 1;
 		}
-
-
+#endif
+#if 0
 		if (!cart_rom_loaded) {
 			FILE *cartfile;
 			const char* cart_filename = "pong.gba";
@@ -1215,7 +1282,7 @@ int main(int argc, char** argv, char** env) {
 			}
 			cart_rom_loaded = 1;
 		}
-
+#endif
 
 		//ImGui::Text("Verilator sim running... ROM_ADDR: 0x%05x", top->ROM_ADDR);               // Display some text (you can use a format strings too)
 																							   //ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
@@ -1233,6 +1300,8 @@ int main(int argc, char** argv, char** env) {
 		//ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 		//ImGui::PlotLines("Lines", values, IM_ARRAYSIZE(values), values_offset, "sample", -1.0f, 1.0f, ImVec2(0, 80));
 		if (ImGui::Button("RESET")) main_time = 0;
+		if (ImGui::Button("LOAD ROM")) start_load_rom();
+		if (ImGui::Button("LOAD CART")) start_load_cart();
 		ImGui::Text("main_time %d", main_time);
 		ImGui::Text("frame_count: %d  line_count: %d", frame_count, line_count);
 		// AJS // ImGui::Text("Addr:   0x%08X", top->bus_mem_addr);

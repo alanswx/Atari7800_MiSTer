@@ -2,16 +2,14 @@
 // top end ff for verilator
 //
 
-`define sdl_display
+//`define sdl_display
 `define USE_VGA
 //`define USE_CGA
 
-module top(VGA_R,VGA_B,VGA_G,VGA_HS,VGA_VS,reset,CLK);
+module top(VGA_R,VGA_B,VGA_G,VGA_HS,VGA_VS,reset,clk_sys,clk_vid,ioctl_download,ioctl_addr,ioctl_dout,ioctl_index,ioctl_wait);
 
-   input CLK/*verilator public_flat*/;
-   wire clk25/*verilator public_flat*/;
-   wire clk12/*verilator public_flat*/;
-   wire clk6/*verilator public_flat*/;
+   input clk_sys/*verilator public_flat*/;
+   input clk_vid/*verilator public_flat*/;
    input reset/*verilator public_flat*/;
 
    output [7:0] VGA_R/*verilator public_flat*/;
@@ -20,6 +18,12 @@ module top(VGA_R,VGA_B,VGA_G,VGA_HS,VGA_VS,reset,CLK);
    
    output VGA_HS;
    output VGA_VS;
+   
+   input        ioctl_download;
+   input [24:0] ioctl_addr;
+   input [7:0] ioctl_dout;
+   input [7:0]  ioctl_index;
+   output  reg     ioctl_wait=1'b0;
    
    wire       led1;
    wire       led2;
@@ -274,7 +278,7 @@ wire       scandoubler = (scale || forced_scandoubler);
     						input integer pixel_);
 
    wire      pixclk;
-   assign pixclk = /*clk12*/clk25/*CLK*/;
+   assign pixclk = /*clk12*/clk_vid/*CLK*/;
 
    initial
      begin

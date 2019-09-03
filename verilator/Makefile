@@ -16,11 +16,13 @@ V_INC = +incdir+$(RTL) +incdir+$(CPU) +incdir+$(ROM)
 V_DEFINE = +define+debug=1 +define+SIMULATION=1
 V_DEFINE += --converge-limit 2000 -Wno-WIDTH -Wno-IMPLICIT -Wno-MODDUP -Wno-UNSIGNED -Wno-CASEINCOMPLETE -Wno-CASEX -Wno-SYMRSVDWORD -Wno-COMBDLY -Wno-INITIALDLY -Wno-BLKANDNBLK -Wno-UNOPTFLAT -Wno-SELRANGE -Wno-CMPCONST -Wno-CASEOVERLAP -Wno-PINMISSING -Wno-MULTIDRIVEN
 
-CFLAGS = "$(CC_OPT) $(CC_DEFINE) -I../../emu/famec `sdl2-config --cflags`"
-LDFLAGS = "-L../../emu/famec -lSDL2 -lpthread -lfame"
+CFLAGS = "$(CC_OPT) $(CC_DEFINE)  `sdl2-config --cflags`"
+LDFLAGS = " -lSDL2 -lpthread `sdl2-config --libs` -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo "
 EXE = ./tmp/Vtop
-V_OPT = -O2 
-CC_OPT = -O
+#V_OPT = -O2 
+#CC_OPT = -O
+V_OPT = 
+CC_OPT =  -g
 
 ifeq ($(COSIM),y)
 CC_DEFINE = -DCOSIM=1
