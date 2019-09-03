@@ -85,9 +85,9 @@ wire HC;                // ALU half carry
 
 reg  [7:0] AI;          // ALU Input A
 reg  [7:0] BI;          // ALU Input B
-wire [7:0] DI;          // Data In
+wire [7:0] DI/*verilator public_flat*/;// Data In
 wire [7:0] IR;          // Instruction register
-reg  [7:0] DO;          // Data Out 
+reg  [7:0] DO/*verilator public_flat*/;          // Data Out 
 reg  WE;                // Write Enable
 reg  CI;                // Carry In
 wire CO;                // Carry Out 

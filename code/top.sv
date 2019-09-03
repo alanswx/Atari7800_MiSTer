@@ -163,6 +163,7 @@ output logic [7:0] PAout, PBout
 
 		.clock_b(sysclk_7_143),
 		.address_b(clear_addr),
+		.data_b(1'b0),
 		.wren_b(loading)
 	);
 
@@ -177,7 +178,8 @@ output logic [7:0] PAout, PBout
 
 		.clock_b(sysclk_7_143),
 		.address_b(clear_addr),
-		.wren_b(loading)
+		.wren_b(loading),
+		.data_b(1'b0)
 	);
 
 	// Clock

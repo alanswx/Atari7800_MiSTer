@@ -153,7 +153,7 @@ always_ff @(posedge clk_sys) begin
 	logic [24:0] old_addr;
 
 if (cart_download)
-	$display("nvram: reading x's %b @ %x", ioctl_dout, ioctl_addr);
+	$display("cart_download: writing x's %b @ %x", ioctl_dout, ioctl_addr);
 
 	old_cart_download <= cart_download;
 	if (old_cart_download & ~cart_download)
@@ -185,30 +185,46 @@ assign cart_write_addr = (ioctl_addr >= 8'd128) && cart_is_7800 ? (ioctl_addr[17
 
 dpram_dc #(.widthad_a(18)) cart
 (
-	.address_a(cart_addr),
-	.clock_a(pclk_0),
-	.byteena_a(~cart_download),
-	.q_a(cart_data),
 
-	.address_b(cart_write_addr),
-	.clock_b(clk_sys),
-	.data_b(ioctl_dout),
-	.wren_b(ioctl_wr & cart_download),
-	.byteena_b(1'b1)
+	.address_a(cart_write_addr),
+	.clock_a(clk_sys),
+	.data_a(ioctl_dout),
+	.wren_a(ioctl_wr & cart_download),
+	.byteena_a(1'b1),
+
+	.address_b(cart_addr),
+	.clock_b(pclk_0),
+	.byteena_b(~cart_download),
+	.q_b(cart_data)
+
 );
+
+/*
+always_ff @(posedge clk_mem) begin
+if (bios_sel & ~bios_download)
+	$display("bios: reading x's %b @ %x", bios_data, bios_addr[11:0]);
+end
+*/
+
+always_ff @(posedge clk_sys) begin
+if (ioctl_wr & bios_download)
+	$display("wrbios: writing x's %b @ %x", ioctl_dout,ioctl_addr);
+end
 
 dpram_dc #(.widthad_a(12)) bios
 (
-	.address_a(bios_addr[11:0]),
-	.clock_a(clk_mem),
-	.byteena_a(bios_sel & ~bios_download),
-	.q_a(bios_data),
 
-	.address_b(ioctl_addr),
-	.clock_b(clk_sys),
-	.data_b(ioctl_dout),
-	.wren_b(ioctl_wr & bios_download),
-	.byteena_b(1'b1)
+	.address_a(ioctl_addr),
+	.clock_a(clk_sys),
+	.data_a(ioctl_dout),
+	.wren_a(ioctl_wr & bios_download),
+	.byteena_a(1'b1),
+
+	.address_b(bios_addr[11:0]),
+	.clock_b(clk_mem),
+	.byteena_b(bios_sel & ~bios_download),
+	.q_b(bios_data)
+
 );
 
 //////////////////////////////  IO  /////////////////////////////////////

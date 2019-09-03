@@ -30,6 +30,8 @@
 
 #include "../imgui/imgui_memory_editor.h"
 
+FILE *ioctl_file=NULL;
+int ioctl_next_addr = 0x0;
 
 #ifndef WINDOWS
 SDL_Renderer * renderer =NULL;
@@ -627,23 +629,18 @@ static int clkdiv=3;
 		}
 		if ((main_time & 1) == 0) {
 //			top->clk_sys = 0;       // Toggle clock
-			//top->clk_100 = 0;
-			//top->clk_256 = 0;
 			if (!clkdiv) {
-				top->clk_sys=0;
 			}
+				top->clk_sys=0;
 			top->clk_vid = 0;				
 		}
 		if ((main_time & 1) == 1) {
 //			top->clk_sys = 1;
 			if (!clkdiv) {
 				clkdiv=3;
-				top->clk_sys=1;
 			}
 			clkdiv--;
-			
-			//top->clk_100 = 1;
-			//top->clk_256 = 1;
+			top->clk_sys=1;
 			top->clk_vid = 1;
 
 #if 0
@@ -961,14 +958,17 @@ static int clkdiv=3;
 		}
 
 
-	ioctl_download_before_eval();
-
+	if (top->clk_sys && ((main_time & 1) == 1)) 
+		ioctl_download_before_eval();
+	else if (ioctl_file)
+		printf("skipping download this cycle %d\n",top->clk_sys);
 
 
 
 		top->eval();            // Evaluate model!
 
-	ioctl_download_after_eval();
+	if (top->clk_sys && ((main_time & 1) == 1)) 
+		ioctl_download_after_eval();
 
 
 
@@ -984,11 +984,10 @@ static int clkdiv=3;
 	return 0;
 }
 
-FILE *ioctl_file=NULL;
-int ioctl_next_addr = 0x0;
 void ioctl_download_setfile(char *file, int index)
 {
-	ioctl_next_addr = 0x0;
+	ioctl_next_addr = -1;
+	top->ioctl_addr=ioctl_next_addr;
 	top->ioctl_index = index;
     ioctl_file=fopen(file,"rb");
     if (!ioctl_file) printf("error opening %s\n",file);
@@ -996,6 +995,7 @@ void ioctl_download_setfile(char *file, int index)
 void ioctl_download_before_eval()
 {
 	if (ioctl_file) {
+printf("ioctl_download_before_eval %x\n",top->ioctl_addr);
 	    if (top->ioctl_wait==0) {
 	    top->ioctl_download=1;
 	    top->ioctl_wr = 1;
@@ -1008,24 +1008,26 @@ void ioctl_download_before_eval()
 			printf("finished upload\n");
 
 	    }
-	    if (ioctl_file) {
-	    	int curchar = fgetc(ioctl_file);
+	    	if (ioctl_file) {
+	    		int curchar = fgetc(ioctl_file);
 		
-	    if (curchar!=EOF) {
-	    	top->ioctl_dout=(char)curchar;
-	    	ioctl_next_addr++;
-	    }
-	    }
+	    		if (curchar!=EOF) {
+	    		top->ioctl_dout=(char)curchar;
+	    		ioctl_next_addr++;
+	    		}
+	    	}
+		}
 	}
 	else {
 	top->ioctl_download=0;
 	top->ioctl_wr=0;
 	}
-}
+
 }
 void ioctl_download_after_eval()
 {
     top->ioctl_addr=ioctl_next_addr;
+if (ioctl_file) printf("ioctl_download_after_eval %x wr %x dl %x\n",top->ioctl_addr,top->ioctl_wr,top->ioctl_download);
 }
 
 void start_load_rom() {
@@ -1358,6 +1360,10 @@ int main(int argc, char** argv, char** env) {
 
 		ImGui::Begin("CPU Registers");
 		ImGui::Spacing();
+		ImGui::Text("PC       0x%04X", top->top__DOT__main__DOT__cpu_inst__DOT__core__DOT__PC);
+		ImGui::Text("AB       0x%02X%02X", top->top__DOT__main__DOT__cpu_inst__DOT__core__DOT__ABH,top->top__DOT__main__DOT__cpu_inst__DOT__core__DOT__ABL);
+		ImGui::Text("DI       0x%02X", top->top__DOT__main__DOT__cpu_inst__DOT__core__DOT__DI);
+		ImGui::Text("DO       0x%02X", top->top__DOT__main__DOT__cpu_inst__DOT__core__DOT__DO);
 #if 0
 		ImGui::Text("r0       0x%08X", top->gba_top__DOT__cpu__DOT__cpu__DOT__regfile_Inst__DOT__r0);
 		ImGui::Text("r1       0x%08X", top->gba_top__DOT__cpu__DOT__cpu__DOT__regfile_Inst__DOT__r1);
