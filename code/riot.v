@@ -72,7 +72,7 @@ module RIOT(A, // Address bus input
 	   PA7_Int_Mode <= 1'b0;
 	   // Fill RAM with 0s
 	   for (cnt = 0; cnt < 128; cnt = cnt + 1)
-	     RAM[cnt] <= 8'b0;
+	     RAM[cnt] = 8'b0;
 	   R_PA7 <= 1'b0;
 	   R_op <= `NOP;
 	   R_Din <= 8'b0;
