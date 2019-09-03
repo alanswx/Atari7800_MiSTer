@@ -612,23 +612,36 @@ static void ShowExampleAppConsole(bool* p_open)
 	console.Draw("Debug Log", p_open);
 }
 
+
+
 int verilate() {
+static int clkdiv=3;
+
 	if (!Verilated::gotFinish()) {
 		//while ( top->FL_ADDR < 0x0100 ) {		// Only run for a short time.
-		if (main_time < 8) {
+		if (main_time < 48) {
 			top->reset = 1;   	// Assert reset (active HIGH)
 		}
-		if (main_time == 8) {	// Do == here, so we can still reset it in the main loop.
+		if (main_time == 48) {	// Do == here, so we can still reset it in the main loop.
 			top->reset = 0;		// Deassert reset.
 		}
 		if ((main_time & 1) == 0) {
-			top->clk_sys = 0;       // Toggle clock
+//			top->clk_sys = 0;       // Toggle clock
 			//top->clk_100 = 0;
 			//top->clk_256 = 0;
+			if (!clkdiv) {
+				top->clk_sys=0;
+			}
 			top->clk_vid = 0;				
 		}
 		if ((main_time & 1) == 1) {
-			top->clk_sys = 1;
+//			top->clk_sys = 1;
+			if (!clkdiv) {
+				clkdiv=3;
+				top->clk_sys=1;
+			}
+			clkdiv--;
+			
 			//top->clk_100 = 1;
 			//top->clk_256 = 1;
 			top->clk_vid = 1;
@@ -985,11 +998,13 @@ void ioctl_download_before_eval()
 	if (ioctl_file) {
 	    if (top->ioctl_wait==0) {
 	    top->ioctl_download=1;
+	    top->ioctl_wr = 1;
 	    
 	    if (feof(ioctl_file)) {
 		    fclose(ioctl_file);
 		    ioctl_file=NULL;
 			top->ioctl_download=0;
+	    	top->ioctl_wr = 0;
 			printf("finished upload\n");
 
 	    }
@@ -1002,8 +1017,11 @@ void ioctl_download_before_eval()
 	    }
 	    }
 	}
-	else top->ioctl_download=0;
+	else {
+	top->ioctl_download=0;
+	top->ioctl_wr=0;
 	}
+}
 }
 void ioctl_download_after_eval()
 {

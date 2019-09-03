@@ -6,7 +6,7 @@
 `define USE_VGA
 //`define USE_CGA
 
-module top(VGA_R,VGA_B,VGA_G,VGA_HS,VGA_VS,reset,clk_sys,clk_vid,ioctl_download,ioctl_addr,ioctl_dout,ioctl_index,ioctl_wait);
+module top(VGA_R,VGA_B,VGA_G,VGA_HS,VGA_VS,reset,clk_sys,clk_vid,ioctl_download,ioctl_addr,ioctl_dout,ioctl_index,ioctl_wait,ioctl_wr);
 
    input clk_sys/*verilator public_flat*/;
    input clk_vid/*verilator public_flat*/;
@@ -20,6 +20,7 @@ module top(VGA_R,VGA_B,VGA_G,VGA_HS,VGA_VS,reset,clk_sys,clk_vid,ioctl_download,
    output VGA_VS;
    
    input        ioctl_download;
+   input        ioctl_wr;
    input [24:0] ioctl_addr;
    input [7:0] ioctl_dout;
    input [7:0]  ioctl_index;
@@ -80,7 +81,7 @@ Atari7800 main
 	.sysclk_7_143 (clk_sys),
 	.clock_25     (clk_vid),
 	.reset        (reset),
-	.locked       (clock_locked),
+	.locked       (1'b1/*clock_locked*/),
 	.memclk_o     (clk_mem),
 	.pclk_0       (pclk_0),
 	.loading      (ioctl_download),
@@ -150,6 +151,9 @@ wire cart_is_7800 = (cart_header == "ATARI");
 always_ff @(posedge clk_sys) begin
 	logic old_cart_download;
 	logic [24:0] old_addr;
+
+if (cart_download)
+	$display("nvram: reading x's %b @ %x", ioctl_dout, ioctl_addr);
 
 	old_cart_download <= cart_download;
 	if (old_cart_download & ~cart_download)
