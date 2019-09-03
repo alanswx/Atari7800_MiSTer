@@ -76,6 +76,8 @@ wire [7:0]  ioctl_index;
 
 wire [15:0] joy0,joy1;
 
+wire [7:0] VGA_R2;
+
 Atari7800 main
 (
 	.sysclk_7_143 (clk_sys),

@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <SDL.h>
 #include <SDL_opengl.h>
+
 #else
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
@@ -861,6 +862,7 @@ static int clkdiv=3;
 			if (vga_addr <= vga_size) vga_ptr[vga_addr] = (rgb[0] << 16) | (rgb[1] << 8) | (rgb[2] << 0);
 			
 			disp_ptr[vga_addr] = rgb[0] << 24 | rgb[1] << 16 | rgb[2] << 8;	// Our debugger framebuffer is in the 32-bit RGBA format.
+			fprintf(stderr,"vga_addr: %d %d %d %x\n",vga_addr,line_count,pix_count,disp_ptr[vga_addr]);
 
 				 // (line_count * width) + pixel_count.
 			//uint32_t disp_addr = (top->gba_top__DOT__gfx__DOT__gfx__DOT__vcount * 240) + top->gba_top__DOT__gfx__DOT__gfx__DOT__hcount;
@@ -1196,9 +1198,22 @@ int main(int argc, char** argv, char** env) {
 #else
     renderer = SDL_CreateRenderer(window, -1, 0);
     // the texture should match the GPU so it doesn't have to copy
-    texture = SDL_CreateTexture(renderer,
-        SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, VGA_WIDTH, VGA_HEIGHT);
-    ImTextureID my_tex_id = (ImTextureID) texture;
+    //texture = SDL_CreateTexture(renderer,
+       // SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, VGA_WIDTH, VGA_HEIGHT);
+	GLuint tex;
+	glGenTextures(1, &tex);
+	glBindTexture(GL_TEXTURE_2D, tex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+
+
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, VGA_WIDTH, VGA_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE,disp_ptr);
+    ImTextureID my_tex_id = (ImTextureID) tex;
+
+
+//    ImTextureID my_tex_id = (ImTextureID) renderedTexture;
 #endif
 
 	bool follow_writes = 0;
@@ -1347,7 +1362,8 @@ int main(int argc, char** argv, char** env) {
 		ImGui::SameLine(); ImGui::SliderInt("Step amount", &multi_step_amount, 8, 1024);
 		ImGui::Text("Last SDRAM WRITE. byte_addr: 0x%08X  write_data: 0x%08X  data_ben: 0x%01X\n", last_sdram_byteaddr, last_sdram_writedata, last_sdram_ben);	//  Note sd_data_i is OUT of the sim!
 
-		ImGui::Image(my_tex_id, ImVec2(width, height), ImVec2(0, 0), ImVec2(1, 1), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 128));
+		//ImGui::Image(my_tex_id, ImVec2(width, height), ImVec2(0, 0), ImVec2(1, 1), ImColor(255, 255, 255, 255), ImColor(255, 255, 255, 128));
+		ImGui::Image(my_tex_id, ImVec2(width, height));
 		ImGui::End();
 
 
@@ -1440,11 +1456,15 @@ int main(int argc, char** argv, char** env) {
 		//g_pSwapChain->Present(1, 0); // Present with vsync
 		g_pSwapChain->Present(0, 0); // Present without vsync
 #else
+	//SDL_SetRenderTarget(renderer,texture);
         //SDL_RenderClear(renderer);
         //SDL_RenderCopy(renderer, texture, NULL, NULL);
         //SDL_RenderPresent(renderer);
-        SDL_UpdateTexture(texture, NULL, disp_ptr, VGA_WIDTH * sizeof(Uint32));
+        //SDL_UpdateTexture(texture, NULL, disp_ptr, VGA_WIDTH * 4/*sizeof(Uint32)*/);
+        //SDL_RenderCopy(renderer, texture, NULL, NULL);
+	//SDL_SetRenderTarget(renderer,NULL);
 
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, VGA_WIDTH, VGA_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE,disp_ptr);
 
 
         // Rendering
