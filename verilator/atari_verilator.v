@@ -73,6 +73,12 @@ always @(posedge clk_sys) begin
 end
 */
 
+wire [3:0]RR;
+wire [3:0]GG;
+wire [3:0]BB;
+assign VGA_R= {RR,RR};
+assign VGA_G= {GG,GG};
+assign VGA_B= {BB,BB};
 Atari7800 main
 (
 	.sysclk_7_143 (clk_sys),
@@ -84,9 +90,9 @@ Atari7800 main
 	.loading      (ioctl_download),
 
 	// Video
-	.RED          (VGA_R),
-	.GREEN        (VGA_G),
-	.BLUE         (VGA_B),
+	.RED          (RR),
+	.GREEN        (GG),
+	.BLUE         (BB),
 	.HSync        (VGA_HS),
 	.VSync        (VGA_VS),
 	.HBlank       (HBlank),
@@ -131,7 +137,7 @@ assign AUDIO_L = AUDIO_R;
 
 ////////////////////////////  MEMORY  ///////////////////////////////////
 
-wire [15:0] bios_addr;
+wire [16:0] bios_addr;
 reg [7:0] cart_data, bios_data;
 wire cart_sel, bios_sel;
 wire clk_mem;
@@ -211,7 +217,7 @@ end
 dpram_dc #(.widthad_a(12)) bios
 (
 
-	.address_a(ioctl_addr),
+	.address_a(ioctl_addr[11:0]),
 	.clock_a(clk_sys),
 	.data_a(ioctl_dout),
 	.wren_a(ioctl_wr & bios_download),
