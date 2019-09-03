@@ -923,6 +923,7 @@ static int clkdiv=3;
 				sprintf(my_string, "Frame: %06d  VSync! ", frame_count); console.AddLog(my_string);
 				
 				//if (frame_count > 46) {
+#if 0
 					printf("Dumping framebuffer to vga_out.raw!\n");
 					char vga_filename[40];
 					sprintf(vga_filename, "vga_frame_%d.raw", frame_count);
@@ -951,6 +952,7 @@ static int clkdiv=3;
 				}
 				//if (frame_count > 46) fclose(vgap);
 				fclose(vgap);
+#endif
 
 				//printf("pc: %08X  addr: %08X  inst: %08X\n", top->pc << 2, top->bus_mem_addr, top->inst);
 			}

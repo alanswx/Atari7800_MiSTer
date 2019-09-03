@@ -26,27 +26,10 @@ module top(VGA_R,VGA_B,VGA_G,VGA_HS,VGA_VS,reset,clk_sys,clk_vid,ioctl_download,
    input [7:0]  ioctl_index;
    output  reg     ioctl_wait=1'b0;
    
-   wire       led1;
-   wire       led2;
-   wire [11:0] sw/*verilator public_flat*/;
-   wire [8:1]  sw1/*verilator public_flat*/;
    
-   wire [15:0] js_analog/*verilator public_flat*/;
 
    
    //-------------------------------------------------------------------
-
-   wire       cga_hsync, cga_vsync, cga_blank;
-   wire [7:0] cga_rgb;
-   wire       vga_hsync;
-   wire       vga_vsync;
-   wire       vga_blank;
-   wire [7:0] vga_rgb;
-   wire [7:0] audio;
-   wire       clk_6mhz_o/*verilator public_flat_rd*/;
-
-
-
 
 wire cart_download = ioctl_download & (ioctl_index != 8'd0);
 wire bios_download = ioctl_download & (ioctl_index == 8'd0);
@@ -64,7 +47,6 @@ end
 
 wire  [1:0] buttons;
 wire [31:0] status;
-wire        forced_scandoubler;
 wire        img_mounted;
 wire        img_readonly;
 wire [63:0] img_size;
@@ -259,24 +241,32 @@ assign joyb = status[7] ? joy0 : joy1;
 
 // RIOT Ports:
 // 4 bits of PA are used for first stick, other 4 bits for second stick.
-// 2600: Bits PB 0,1,4,6,7 are used for reset, select, b/w, left diff, right diff
-// 7800: Bits PB 0,1,3,6,7 are used for reset, select, pause, left diff, right diff
+// 2600: Bits PB 0,1,4,6,7 are used for reset, select, b/w, left diffculty, right diff
+// 7800: Bits PB 0,1,3,6,7 are used for reset, select, pause, left diffculty, right diff
 // 7800: Bits PB 2 & 4 are used for output to select 2 button mode.
 
-assign PBin[7] = status[13];              // Right diff
-assign PBin[6] = status[14];              // Left diff
+//assign PBin[7] = status[13];              // Right diff
+//assign PBin[6] = status[14];              // Left diff
 assign PBin[5] = 1'b1;                     // Unused
 assign PBin[4] = 1'b1;                     // 2600 B/W?
-assign PBin[3] = (~joya[6] & ~joyb[6]);    // Pause
+//assign PBin[3] = (~joya[6] & ~joyb[6]);    // Pause
 assign PBin[2] = 1'b1;                     // Unused
-assign PBin[1] = (~joya[7] & ~joyb[7]);    // Select
-assign PBin[0] = (~joya[8] & ~joyb[8]);    // Start/Reset 
+//assign PBin[1] = (~joya[7] & ~joyb[7]);    // Select
+//assign PBin[0] = (~joya[8] & ~joyb[8]);    // Start/Reset 
+
+assign PBin[7] = 1'b1;
+assign PBin[6] = 1'b1;
+assign PBin[3] = 1'b1;
+assign PBin[1] = 1'b1;
+assign PBin[0] = 1'b1;
 
 assign PAin[7:4] = {~joya[0], ~joya[1], ~joya[2], ~joya[3]}; // P1: R L D U or PA PB 1 1
 assign PAin[3:0] = {~joyb[0], ~joyb[1], ~joyb[2], ~joyb[3]}; // P2: R L D U or PA PB 1 1
 
-assign ilatch[0] = ~joya[4]; // P1 Fire
-assign ilatch[1] = ~joyb[4]; // P2 Fire
+//assign ilatch[0] = ~joya[4]; // P1 Fire
+//assign ilatch[1] = ~joyb[4]; // P2 Fire
+assign ilatch[0] = 1'b1;
+assign ilatch[1] = 1'b1;
 
 wire pada_0 = joya_b2 ? joya[4] : joya[9];
 wire pada_1 = joya_b2 ? joya[5] : joya[10];
@@ -287,74 +277,13 @@ assign idump = {padb_0, padb_1, pada_0, pada_1}; // // P2 F1, P2 F2, P1 F1, P1 F
 
 ////////////////////////////  VIDEO  ////////////////////////////////////
 
-wire [5:0] R,G,B;
-wire HSync, HSYNC;
-wire VSync, VSYNC;
 wire HBlank;
 wire VBlank;
 wire ce_pix = 1'b1;
 
 
-assign VGA_F1 = 1'b0;
-assign CLK_VIDEO = clk_vid;
-assign VGA_SL = sl[1:0];
 
-wire [2:0] scale = status[11:9];
-wire [2:0] sl = scale ? scale - 1'd1 : 3'd0;
-wire       scandoubler = (scale || forced_scandoubler);
 
-`ifdef sdl_display
-   //
-   import "DPI-C" function void dpi_vga_init(input integer h,
-					     input integer v);
-
-   import "DPI-C" function void dpi_vga_display(input integer vsync_,
-						input integer hsync_,
-    						input integer pixel_);
-
-   wire      pixclk;
-   assign pixclk = /*clk12*/clk_vid/*CLK*/;
-
-   initial
-     begin
-	dpi_vga_init(800, 600);
-     end
-
-   wire [31:0] pxd;
-   wire [31:0] hs;
-   wire [31:0] vs;
-
-   wire [2:0]  vgaBlue;
-   wire [2:0]  vgaGreen;
-   wire [2:0]  vgaRed;
-
-`ifdef USE_VGA
-   assign vgaBlue = { vga_rgb[7:6], 1'b0 };
-   assign vgaGreen = vga_rgb[5:3];
-   assign vgaRed = vga_rgb[2:0];
-
-   //assign pxd = { 24'b0, vgaBlue, vgaGreen[2:1], vgaRed };
-   assign pxd =  {8'b11111111,vgaRed,5'b0,vgaGreen,5'b0,vgaBlue,5'b0 } ;
-//   assign pxd = { 24'b0, rgb };
-
-   assign vs = {31'b0, ~vga_vsync};
-   assign hs = {31'b0, ~vga_hsync};
-`endif
-
-`ifdef USE_CGA
-   assign vgaBlue = { cga_rgb[7:6], 1'b0 };
-   assign vgaGreen = cga_rgb[5:3];
-   assign vgaRed = cga_rgb[2:0];
-
-   assign pxd = { 24'b0, vgaBlue, vgaGreen[2:1], vgaRed };
-
-   assign vs = {31'b0, ~cga_vsync};
-   assign hs = {31'b0, ~cga_hsync};
-`endif
-   
-   always @(posedge pixclk)
-     dpi_vga_display(vs, hs, pxd);
-`endif
    
 endmodule // ff_cpu_test
 
