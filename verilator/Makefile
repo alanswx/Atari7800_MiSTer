@@ -16,13 +16,41 @@ V_INC = +incdir+$(RTL) +incdir+$(CPU) +incdir+$(ROM)
 V_DEFINE = +define+debug=1 +define+SIMULATION=1
 V_DEFINE += --converge-limit 2000 -Wno-WIDTH -Wno-IMPLICIT -Wno-MODDUP -Wno-UNSIGNED -Wno-CASEINCOMPLETE -Wno-CASEX -Wno-SYMRSVDWORD -Wno-COMBDLY -Wno-INITIALDLY -Wno-BLKANDNBLK -Wno-UNOPTFLAT -Wno-SELRANGE -Wno-CMPCONST -Wno-CASEOVERLAP -Wno-PINMISSING -Wno-MULTIDRIVEN
 
-CFLAGS = "$(CC_OPT) $(CC_DEFINE)  `sdl2-config --cflags`"
-LDFLAGS = " -lSDL2 -lpthread `sdl2-config --libs` -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo "
+UNAME_S := $(shell uname -s)
+
+ifeq ($(UNAME_S), Darwin) #APPLE
+	ECHO_MESSAGE = "Mac OS X"
+	LIBS += -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo `sdl2-config --libs`
+	LIBS += -L/usr/local/lib -L/opt/local/lib
+
+	CXXFLAGS += `sdl2-config --cflags`
+	CXXFLAGS += -I/usr/local/include -I/opt/local/include
+	CFLAGS = $(CXXFLAGS)
+endif
+
+ifeq ($(UNAME_S), Linux) #LINUX
+	ECHO_MESSAGE = "Linux"
+	LIBS += -lGL -ldl `sdl2-config --libs`
+
+	CXXFLAGS += `sdl2-config --cflags`
+	CFLAGS = $(CXXFLAGS)
+endif
+
+ifeq ($(findstring MINGW,$(UNAME_S)),MINGW)
+	ECHO_MESSAGE = "MinGW"
+	LIBS += -lgdi32 -lopengl32 -limm32 `pkg-config --static --libs sdl2`
+
+	CXXFLAGS += `pkg-config --cflags sdl2`
+	CFLAGS = $(CXXFLAGS)
+endif
+
+CFLAGS += $(CC_OPT) $(CC_DEFINE)
+LDFLAGS = $(LIBS)
 EXE = ./tmp/Vtop
 #V_OPT = -O2 
 #CC_OPT = -O
 V_OPT = 
-CC_OPT =  -g
+CC_OPT =  
 
 ifeq ($(COSIM),y)
 CC_DEFINE = -DCOSIM=1
@@ -67,7 +95,7 @@ VOUT = tmp/Vtop.cpp
 all: $(EXE)
 
 $(VOUT): $(V_SRC)  Makefile
-	$V -cc $(V_OPT) -LDFLAGS $(LDFLAGS) -exe --trace --Mdir ./tmp $(V_DEFINE) $(V_INC) $(TOP) -CFLAGS $(CFLAGS) $(V_SRC) $(C_SRC)
+	$V -cc $(V_OPT) -LDFLAGS "$(LDFLAGS) " -exe --trace --Mdir ./tmp $(V_DEFINE) $(V_INC) $(TOP) -CFLAGS $(CFLAGS) $(V_SRC) $(C_SRC)
 
 $(EXE): $(VOUT) $(C_SRC)
 #	(cd tmp; make OPT="-fauto-inc-dec -fdce -fdefer-pop -fdse -ftree-ccp -ftree-ch -ftree-fre -ftree-dce -ftree-dse" -f Vtop.mk)
