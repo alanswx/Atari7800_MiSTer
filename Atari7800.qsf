@@ -300,21 +300,5 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to LED_*
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to BTN_*
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to BTN_*
 source files.qip
-set_global_assignment -name VERILOG_FILE code/ALU.v
-set_global_assignment -name VERILOG_FILE code/cpu.v
-set_global_assignment -name VERILOG_FILE code/tia.v
-set_global_assignment -name SYSTEMVERILOG_FILE code/cart.sv
-set_global_assignment -name VERILOG_FILE code/riot.v
-set_global_assignment -name SYSTEMVERILOG_FILE code/audio.sv
-set_global_assignment -name SYSTEMVERILOG_FILE code/Maria/timing_ctrl.sv
-set_global_assignment -name SYSTEMVERILOG_FILE code/Maria/memory_map.sv
-set_global_assignment -name SYSTEMVERILOG_FILE code/Maria/maria.sv
-set_global_assignment -name SYSTEMVERILOG_FILE code/Maria/line_ram.sv
-set_global_assignment -name SYSTEMVERILOG_FILE code/Maria/dma_ctrl.sv
-set_global_assignment -name VHDL_FILE dpram.vhd
-set_global_assignment -name SYSTEMVERILOG_FILE code/POKEY.sv
-set_global_assignment -name SYSTEMVERILOG_FILE code/uv_vga.sv
-set_global_assignment -name SYSTEMVERILOG_FILE code/top.sv
-set_global_assignment -name VHDL_FILE bram.vhd
-set_global_assignment -name SYSTEMVERILOG_FILE Atari7800.sv
+
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

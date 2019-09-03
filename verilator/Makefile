@@ -52,8 +52,8 @@ CC_OPT =
 
 
 V_SRC = \
-	../sim/spram.sv \
-	../sim/dpram_dc.sv \
+	../sim/nspram.sv \
+	../sim/bram.sv \
 	atari_verilator.v \
 	$(RTL)/ALU.v $(RTL)/cpu.v $(RTL)/tia.v $(RTL)/cart.sv $(RTL)/riot.v \
 	$(RTL)/audio.sv $(RTL)/Maria/timing_ctrl.sv $(RTL)/Maria/memory_map.sv \

@@ -9,9 +9,9 @@ set_global_assignment -name SYSTEMVERILOG_FILE code/Maria/memory_map.sv
 set_global_assignment -name SYSTEMVERILOG_FILE code/Maria/maria.sv
 set_global_assignment -name SYSTEMVERILOG_FILE code/Maria/line_ram.sv
 set_global_assignment -name SYSTEMVERILOG_FILE code/Maria/dma_ctrl.sv
-set_global_assignment -name VHDL_FILE dpram.vhd
+set_global_assignment -name SYSTEMVERILOG_FILE sim/bram.sv
+set_global_assignment -name SYSTEMVERILOG_FILE sim/nspram.sv
 set_global_assignment -name SYSTEMVERILOG_FILE code/POKEY.sv
 set_global_assignment -name SYSTEMVERILOG_FILE code/uv_vga.sv
 set_global_assignment -name SYSTEMVERILOG_FILE code/top.sv
-set_global_assignment -name VHDL_FILE bram.vhd
 set_global_assignment -name SYSTEMVERILOG_FILE Atari7800.sv
