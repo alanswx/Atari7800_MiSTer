@@ -148,7 +148,7 @@ module timing_ctrl (
          slow_ctr <= 2'b0;
          int_b_sr <= 6'b111111;
          raise_dli <= 1'b0;
-         startup_ctr <= 4'd0;
+         startup_ctr <= 5'd0;
          dli_next <= 1'b0;
          halt_b <= 1'b1;
          zp_dma_start <= 1'b0;

@@ -217,7 +217,7 @@ module line_ram(
                 //      [P2  0  0 D0 P0]
                 // These can all be written into the cells using
                 // the same format and read out differently.
-                input_addr <= input_addr + 3'd4;
+                input_addr <= input_addr + 8'd4;
                 if (|PIXELS[7:6])
                     lram_in[input_addr+0] <= {palette, PIXELS[7:6]};
                 if (|PIXELS[5:4])

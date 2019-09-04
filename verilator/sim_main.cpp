@@ -1051,6 +1051,10 @@ void start_load_cart() {
 printf("load cart here\n");
  ioctl_download_setfile("../release-WIP/asteroids.a78",1);
 }
+void start_load_cart_2() {
+printf("load cart here 2\n");
+ ioctl_download_setfile("../release-WIP/PolePositionII.a78",1);
+}
 
 int my_count = 0;
 
@@ -1346,6 +1350,7 @@ int main(int argc, char** argv, char** env) {
 		if (ImGui::Button("RESET")) main_time = 0;
 		if (ImGui::Button("LOAD ROM")) start_load_rom();
 		if (ImGui::Button("LOAD CART")) start_load_cart();
+		if (ImGui::Button("LOAD CART POLE")) start_load_cart_2();
 		ImGui::Text("main_time %d", main_time);
 		ImGui::Text("frame_count: %d  line_count: %d", frame_count, line_count);
 		// AJS // ImGui::Text("Addr:   0x%08X", top->bus_mem_addr);
