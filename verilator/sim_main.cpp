@@ -965,7 +965,7 @@ static int clkdiv=3;
 		}
 
 
-	if (top->clk_sys && ((main_time & 1) == 1)) 
+	if (top->clk_sys ) 
 		ioctl_download_before_eval();
 	else if (ioctl_file)
 		printf("skipping download this cycle %d\n",top->clk_sys);
@@ -974,7 +974,7 @@ static int clkdiv=3;
 
 		top->eval();            // Evaluate model!
 
-	if (top->clk_sys && ((main_time & 1) == 1)) 
+	if (top->clk_sys ) 
 		ioctl_download_after_eval();
 
 
@@ -999,6 +999,7 @@ void ioctl_download_setfile(char *file, int index)
     ioctl_file=fopen(file,"rb");
     if (!ioctl_file) printf("error opening %s\n",file);
 }
+int nextchar = 0;
 void ioctl_download_before_eval()
 {
 	if (ioctl_file) {
@@ -1019,7 +1020,9 @@ printf("ioctl_download_before_eval %x\n",top->ioctl_addr);
 	    		int curchar = fgetc(ioctl_file);
 		
 	    		if (curchar!=EOF) {
-	    		top->ioctl_dout=(char)curchar;
+	    		//top->ioctl_dout=(char)curchar;
+	    		nextchar=curchar;
+printf("ioctl_download_before_eval: dout %x \n",top->ioctl_dout);
 	    		ioctl_next_addr++;
 	    		}
 	    	}
@@ -1034,6 +1037,7 @@ printf("ioctl_download_before_eval %x\n",top->ioctl_addr);
 void ioctl_download_after_eval()
 {
     top->ioctl_addr=ioctl_next_addr;
+   top->ioctl_dout=(unsigned char)nextchar;
 if (ioctl_file) printf("ioctl_download_after_eval %x wr %x dl %x\n",top->ioctl_addr,top->ioctl_wr,top->ioctl_download);
 }
 
