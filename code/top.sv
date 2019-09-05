@@ -461,6 +461,9 @@ logic WE_OUT;
 logic WE, holding;
 logic [7:0] DB_hold;
 
+`define BROKENVHDLCPU
+`ifdef BROKENVHDLCPU
+//`ifdef SIMULATION
 cpu core
 (
 	.clk(clk),
@@ -474,11 +477,45 @@ cpu core
 	.RDY(rdy_in),
 	.res(res)
 );
-
 assign RD = ~(WE & ~res & ~reset);
-assign WE = WE_OUT & rdy_in; //& ~core_latch_data;
+assign DB_hold = (holding) ? DB_hold :  DB_IN;
 
-assign DB_hold = (holding) ? DB_hold : DB_IN;
+`else
+//
+// T65 VHDL Core
+// THIS IS STILL BROKEN - NOT SURE WHY
+//
+wire WE_OUT_n;
+
+assign WE_OUT = ~WE_OUT_n;
+
+t65 core
+(
+	//.Mode(2'b01),
+	//.BCD_en(2'b1),
+	//.Enable(clk),
+	.Res_n(~reset),
+	//.Clk(sysclk),
+	.Clk(clk),
+
+	.A(AB),
+	.DI(DB_hold),
+	.DO(DB_OUT),
+	.R_W_n(WE_OUT_n),
+	.IRQ_n(~IRQ),
+	.NMI_n(~NMI),
+	.Rdy(rdy_in)
+	//.sync(res)
+);
+assign DB_hold = (holding) ? DB_hold : WE_OUT ? DB_OUT : DB_IN;
+assign RD = ~(WE  & ~reset);
+
+`endif
+
+
+
+
+assign WE = WE_OUT & rdy_in; //& ~core_latch_data;
 
 assign holding = ~rdy_in;
 

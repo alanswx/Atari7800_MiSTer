@@ -1,3 +1,4 @@
+set_global_assignment -name QIP_FILE code/t65/t65.qip
 set_global_assignment -name VERILOG_FILE code/ALU.v
 set_global_assignment -name VERILOG_FILE code/cpu.v
 set_global_assignment -name VERILOG_FILE code/tia.v

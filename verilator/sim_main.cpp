@@ -1394,6 +1394,20 @@ int main(int argc, char** argv, char** env) {
 		ImGui::Text("AB       0x%02X%02X", top->top__DOT__main__DOT__cpu_inst__DOT__core__DOT__ABH,top->top__DOT__main__DOT__cpu_inst__DOT__core__DOT__ABL);
 		ImGui::Text("DI       0x%02X", top->top__DOT__main__DOT__cpu_inst__DOT__core__DOT__DI);
 		ImGui::Text("DO       0x%02X", top->top__DOT__main__DOT__cpu_inst__DOT__core__DOT__DO);
+		//ImGui::Spacing();
+		ImGui::Separator();
+		ImGui::Text("Maria Registers");
+		ImGui::Spacing();
+		ImGui::Text("ctrl     0x%02X", top->top__DOT__main__DOT__maria_inst__DOT__ctrl);
+		ImGui::Text("WM       0x%02X", top->top__DOT__main__DOT__maria_inst__DOT__line_ram_inst__DOT__wm);
+		ImGui::Text("CK       0x%02X", (top->top__DOT__main__DOT__maria_inst__DOT__ctrl&0x80)>>7);
+		ImGui::Text("DM1      0x%02X", (top->top__DOT__main__DOT__maria_inst__DOT__ctrl&0x40)>>6);
+		ImGui::Text("DM0      0x%02X", (top->top__DOT__main__DOT__maria_inst__DOT__ctrl&0x20)>>5);
+		ImGui::Text("CW       0x%02X", (top->top__DOT__main__DOT__maria_inst__DOT__ctrl&0x10)>>4);
+		ImGui::Text("BC       0x%02X", (top->top__DOT__main__DOT__maria_inst__DOT__ctrl&0x08)>>3);
+		ImGui::Text("KM       0x%02X", (top->top__DOT__main__DOT__maria_inst__DOT__ctrl&0x04)>>2);
+		ImGui::Text("RM1      0x%02X", (top->top__DOT__main__DOT__maria_inst__DOT__ctrl&0x02)>>1);
+		ImGui::Text("RM0      0x%02X", top->top__DOT__main__DOT__maria_inst__DOT__ctrl&0x01);
 #if 0
 		ImGui::Text("r0       0x%08X", top->gba_top__DOT__cpu__DOT__cpu__DOT__regfile_Inst__DOT__r0);
 		ImGui::Text("r1       0x%08X", top->gba_top__DOT__cpu__DOT__cpu__DOT__regfile_Inst__DOT__r1);
