@@ -1051,6 +1051,10 @@ void start_load_cart() {
 printf("load cart here\n");
  ioctl_download_setfile("../release-WIP/asteroids.a78",1);
 }
+void start_load_cart_3() {
+printf("load cart here\n");
+ ioctl_download_setfile("../release-WIP/DiagCart2.a78",1);
+}
 void start_load_cart_2() {
 printf("load cart here 2\n");
  ioctl_download_setfile("../release-WIP/PolePositionII.a78",1);
@@ -1061,7 +1065,6 @@ int my_count = 0;
 static MemoryEditor mem_edit_1;
 
 int main(int argc, char** argv, char** env) {
-
 #ifdef WINDOWS
 	// Create application window
 	WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, _T("ImGui Example"), NULL };
@@ -1209,10 +1212,7 @@ int main(int argc, char** argv, char** env) {
 		g_pd3dDevice->CreateSamplerState(&desc, &g_pFontSampler);
 	}
 #else
-    renderer = SDL_CreateRenderer(window, -1, 0);
     // the texture should match the GPU so it doesn't have to copy
-    //texture = SDL_CreateTexture(renderer,
-       // SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STATIC, VGA_WIDTH, VGA_HEIGHT);
 	GLuint tex;
 	glGenTextures(1, &tex);
 	glBindTexture(GL_TEXTURE_2D, tex);
@@ -1349,8 +1349,9 @@ int main(int argc, char** argv, char** env) {
 		//ImGui::PlotLines("Lines", values, IM_ARRAYSIZE(values), values_offset, "sample", -1.0f, 1.0f, ImVec2(0, 80));
 		if (ImGui::Button("RESET")) main_time = 0;
 		if (ImGui::Button("LOAD ROM")) start_load_rom();
-		if (ImGui::Button("LOAD CART")) start_load_cart();
-		if (ImGui::Button("LOAD CART POLE")) start_load_cart_2();
+		ImGui::SameLine(); if (ImGui::Button("LOAD CART")) start_load_cart();
+		ImGui::SameLine(); if (ImGui::Button("LOAD CART POLE")) start_load_cart_2();
+		ImGui::SameLine(); if (ImGui::Button("LOAD CART DIAG")) start_load_cart_3();
 		ImGui::Text("main_time %d", main_time);
 		ImGui::Text("frame_count: %d  line_count: %d", frame_count, line_count);
 		// AJS // ImGui::Text("Addr:   0x%08X", top->bus_mem_addr);
@@ -1390,10 +1391,10 @@ int main(int argc, char** argv, char** env) {
 
 		ImGui::Begin("CPU Registers");
 		ImGui::Spacing();
-		ImGui::Text("PC       0x%04X", top->top__DOT__main__DOT__cpu_inst__DOT__core__DOT__PC);
-		ImGui::Text("AB       0x%02X%02X", top->top__DOT__main__DOT__cpu_inst__DOT__core__DOT__ABH,top->top__DOT__main__DOT__cpu_inst__DOT__core__DOT__ABL);
-		ImGui::Text("DI       0x%02X", top->top__DOT__main__DOT__cpu_inst__DOT__core__DOT__DI);
-		ImGui::Text("DO       0x%02X", top->top__DOT__main__DOT__cpu_inst__DOT__core__DOT__DO);
+		//ImGui::Text("PC       0x%04X", top->top__DOT__main__DOT__cpu_inst__DOT__core__DOT__PC);
+		//ImGui::Text("AB       0x%02X%02X", top->top__DOT__main__DOT__cpu_inst__DOT__core__DOT__ABH,top->top__DOT__main__DOT__cpu_inst__DOT__core__DOT__ABL);
+		//ImGui::Text("DI       0x%02X", top->top__DOT__main__DOT__cpu_inst__DOT__core__DOT__DI);
+		//ImGui::Text("DO       0x%02X", top->top__DOT__main__DOT__cpu_inst__DOT__core__DOT__DO);
 		//ImGui::Spacing();
 		ImGui::Separator();
 		ImGui::Text("Maria Registers");
@@ -1484,16 +1485,8 @@ int main(int argc, char** argv, char** env) {
 		//g_pSwapChain->Present(1, 0); // Present with vsync
 		g_pSwapChain->Present(0, 0); // Present without vsync
 #else
-	//SDL_SetRenderTarget(renderer,texture);
-        //SDL_RenderClear(renderer);
-        //SDL_RenderCopy(renderer, texture, NULL, NULL);
-        //SDL_RenderPresent(renderer);
-        //SDL_UpdateTexture(texture, NULL, disp_ptr, VGA_WIDTH * 4/*sizeof(Uint32)*/);
-        //SDL_RenderCopy(renderer, texture, NULL, NULL);
-	//SDL_SetRenderTarget(renderer,NULL);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, VGA_WIDTH, VGA_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE,disp_ptr);
-
 
         // Rendering
         ImGui::Render();

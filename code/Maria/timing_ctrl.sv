@@ -7,7 +7,8 @@
 `define START_OF_LINE_CYCLES 24
 
 // At which column we terminate DP DMA
-`define DP_DMA_KILL_COL 435
+//`define DP_DMA_KILL_COL 426
+`define DP_DMA_KILL_COL 435 
 
 // Column to start the ZP DMA, given that about 29 cycles are needed
 // and there are 452 columns total. Plus some slack cycles.

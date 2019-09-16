@@ -464,6 +464,39 @@ logic [7:0] DB_hold;
 `define BROKENVHDLCPU
 `ifdef BROKENVHDLCPU
 //`ifdef SIMULATION
+wire WE_OUT_n;
+
+/* chip_6502  core(
+ .clk(sysclk),
+ .phi(clk),
+ .res(reset),
+.so(1'b0),
+ .rdy(rdy_in),
+ .nmi(~NMI),
+ .irq(~IRQ),
+ .dbi(DB_hold),
+ .dbo(DB_OUT),
+ .rw(WE_OUT_n),
+ .ab(AB));
+  
+assign res=reset;
+assign WE_OUT = ~WE_OUT_n;
+*//*
+bc6502 core
+(
+.clk(clk),
+.reset(reset), 
+.ma(AB),
+.di(DB_hold),
+.dout(DB_OUT),
+.rw(WE_OUT_n),
+.irq(~IRQ),
+.nmi(~NMI),
+.rdy(rdy_in)
+);
+*/
+
+
 cpu core
 (
 	.clk(clk),
@@ -477,6 +510,7 @@ cpu core
 	.RDY(rdy_in),
 	.res(res)
 );
+
 assign RD = ~(WE & ~res & ~reset);
 assign DB_hold = (holding) ? DB_hold :  DB_IN;
 

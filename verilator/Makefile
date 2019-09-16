@@ -9,10 +9,11 @@ COSIM = n
 
 TOP = --top-module top
 RTL = ../code
-V_INC = +incdir+$(RTL) 
+V_INC = +incdir+$(RTL) +incdir+$(RTL)/aholme/
 
 V_DEFINE = +define+debug=1 +define+SIMULATION=1
 #V_DEFINE += --converge-limit 2000 -Wno-WIDTH -Wno-IMPLICIT -Wno-MODDUP -Wno-UNSIGNED -Wno-CASEINCOMPLETE -Wno-CASEX -Wno-SYMRSVDWORD -Wno-COMBDLY -Wno-INITIALDLY -Wno-BLKANDNBLK -Wno-UNOPTFLAT -Wno-SELRANGE -Wno-CMPCONST -Wno-CASEOVERLAP -Wno-PINMISSING -Wno-MULTIDRIVEN
+V_DEFINE += --threads 3
 
 UNAME_S := $(shell uname -s)
 
