@@ -124,6 +124,8 @@ output logic [7:0] PAout, PBout
 			`CS_RIOT_IO: riot_cs = 1'b1;
 			`CS_CART: cart_cs = 1'b1;
 			`CS_RIOT_RAM: begin riot_cs = 1'b1; riot_ram_cs = 1'b1; end
+			default: begin end
+			
 		endcase
 	end
 
@@ -448,7 +450,8 @@ T65 cpu (
 	.NMI_n(~NMI),
 	.R_W_n(WE_OUT),
 	.A(AB),
-	.DI(R_W_n ? DB_hold : DB_OUT),
+	.DI(WE_OUT ? DB_hold : DB_OUT),
+	//.DI(R_W_n ? DB_hold : DB_OUT),
 	.DO(DB_OUT)
 );
 
