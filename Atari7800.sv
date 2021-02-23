@@ -1,4 +1,7 @@
 //============================================================================
+//  Atari 7800 for MiSTer
+//  Copyright (C) 2017,2018 Srg320
+//  Copyright (C) 2018 Sorgelig
 //
 //  This program is free software; you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License as published by the Free
@@ -13,12 +16,7 @@
 //  You should have received a copy of the GNU General Public License along
 //  with this program; if not, write to the Free Software Foundation, Inc.,
 //  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-//
-//============================================================================
-
-// Enable overlay (or not)
-`define USE_OVERLAY
-
+//============================================================================ 
 
 module emu
 (
@@ -40,8 +38,8 @@ module emu
 	output        CE_PIXEL,
 
 	//Video aspect ratio for HDMI. Most retro systems have ratio 4:3.
-	output  [11:0] VIDEO_ARX,
-	output  [11:0] VIDEO_ARY,
+	output  [7:0] VIDEO_ARX,
+	output  [7:0] VIDEO_ARY,
 
 	output  [7:0] VGA_R,
 	output  [7:0] VGA_G,
@@ -50,29 +48,7 @@ module emu
 	output        VGA_VS,
 	output        VGA_DE,    // = ~(VBlank | HBlank)
 	output        VGA_F1,
-	output [1:0]  VGA_SL,
-	output        VGA_SCALER, // Force VGA scaler
-
-	input  [11:0] HDMI_WIDTH,
-	input  [11:0] HDMI_HEIGHT,
-
-	/*
-	// Use framebuffer from DDRAM (USE_FB=1 in qsf)
-	// FB_FORMAT:
-	//    [2:0] : 011=8bpp(palette) 100=16bpp 101=24bpp 110=32bpp
-	//    [3]   : 0=16bits 565 1=16bits 1555
-	//    [4]   : 0=RGB  1=BGR (for 16/24/32 modes)
-	//
-	// FB_STRIDE either 0 (rounded to 256 bytes) or multiple of 16 bytes.
-	output        FB_EN,
-	output  [4:0] FB_FORMAT,
-	output [11:0] FB_WIDTH,
-	output [11:0] FB_HEIGHT,
-	output [31:0] FB_BASE,
-	output [13:0] FB_STRIDE,
-	input         FB_VBL,
-	input         FB_LL,
-	*/
+	output  [1:0] VGA_SL,
 
 	output        LED_USER,  // 1 - ON, 0 - OFF.
 
@@ -87,10 +63,9 @@ module emu
 	// b[0]: osd button
 	output  [1:0] BUTTONS,
 
-	input         CLK_AUDIO, // 24.576 MHz
 	output [15:0] AUDIO_L,
 	output [15:0] AUDIO_R,
-	output        AUDIO_S,   // 1 - signed audio samples, 0 - unsigned
+	output        AUDIO_S, // 1 - signed audio samples, 0 - unsigned
 	output  [1:0] AUDIO_MIX, // 0 - no mix, 1 - 25%, 2 - 50%, 3 - 100% (mono)
 
 	//ADC
@@ -147,15 +122,12 @@ module emu
 	input         OSD_STATUS
 );
 
-///////// Default values for ports not used in this core /////////
+assign ADC_BUS   = 'Z;
 
-assign ADC_BUS  = 'Z;
-assign USER_OUT = '1;
+assign BUTTONS   = 0;
+assign USER_OUT  = '1;
+
 assign {UART_RTS, UART_TXD, UART_DTR} = 0;
-assign {SD_SCK, SD_MOSI, SD_CS} = 'Z;
-assign {SDRAM_DQ, SDRAM_A, SDRAM_BA, SDRAM_CLK, SDRAM_CKE, SDRAM_DQML, SDRAM_DQMH, SDRAM_nWE, SDRAM_nCAS, SDRAM_nRAS, SDRAM_nCS} = 'Z;
-assign {DDRAM_CLK, DDRAM_BURSTCNT, DDRAM_ADDR, DDRAM_DIN, DDRAM_BE, DDRAM_RD, DDRAM_WE} = '0;
-
 
 assign AUDIO_S   = 1;
 assign AUDIO_MIX = 0;
@@ -164,11 +136,14 @@ assign LED_USER  = ld[7];
 assign LED_DISK  = ld[6];
 assign LED_POWER = 0;
 
-wire [1:0] ar = status[20:19];
+assign VIDEO_ARX = status[8] ? 8'd16 : 8'd4;
+assign VIDEO_ARY = status[8] ? 8'd9  : 8'd3;
 
-assign VIDEO_ARX = (!ar) ? 12'd4 : (ar - 1'd1);
-assign VIDEO_ARY = (!ar) ? 12'd3 : 12'd0;
-
+assign {SDRAM_A, SDRAM_BA, SDRAM_CLK, SDRAM_CKE, SDRAM_DQML, SDRAM_DQMH, SDRAM_nWE, SDRAM_nCAS, SDRAM_nRAS, SDRAM_nCS} = 6'b111111;
+assign SDRAM_DQ = 'Z;
+assign {UART_RTS, UART_TXD, UART_DTR} = 0;
+assign {DDRAM_CLK, DDRAM_BURSTCNT, DDRAM_ADDR, DDRAM_DIN, DDRAM_BE, DDRAM_RD, DDRAM_WE} = 0;
+assign {SD_SCK, SD_MOSI, SD_CS} = 'Z;
 
 
 ///////////////////////  CLOCK/RESET  ///////////////////////////////////
@@ -181,8 +156,8 @@ pll pll
 (
 	.refclk(CLK_50M),
 	.rst(0),
-	.outclk_0(clk_vid),
-	.outclk_1(clk_sys),
+	.outclk_0(clk_sys),
+	.outclk_1(clk_vid),
 	.locked(clock_locked)
 );
 
@@ -206,9 +181,8 @@ end
 parameter CONF_STR = {
 	"ATARI7800;;",
 	"F,A78A26;",
-	"OJK,Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
+	"O8,Aspect ratio,4:3,16:9;",
 	"O9B,Scandoubler Fx,None,HQ2x,CRT 25%,CRT 50%,CRT 75%;",
-
 	"-;",
 	"O7,Swap Joysticks,No,Yes;",
 	"OC,Difficulty Right,Low,High;",
@@ -232,15 +206,12 @@ wire        ioctl_wr;
 wire [7:0]  ioctl_index;
 
 wire [15:0] joy0,joy1;
-wire [21:0] gamma_bus;
 
 hps_io #(.STRLEN(($size(CONF_STR)>>3))) hps_io
 (
 	.clk_sys(clk_sys),
 	.HPS_BUS(HPS_BUS),
 	.conf_str(CONF_STR),
-
-	.gamma_bus(gamma_bus),
 
 	.buttons(buttons),
 	.forced_scandoubler(forced_scandoubler),
@@ -440,12 +411,11 @@ assign idump = {padb_0, padb_1, pada_0, pada_1}; // // P2 F1, P2 F2, P1 F1, P1 F
 
 ////////////////////////////  VIDEO  ////////////////////////////////////
 
-wire [4:0] R,G,B;
-wire HSync, HSYNC;
-wire VSync, VSYNC;
+wire [3:0] R,G,B;
+wire HSync;
+wire VSync;
 wire HBlank;
 wire VBlank;
-wire ce_pix = 1'b1;
 
 
 assign VGA_F1 = 1'b0;
@@ -456,20 +426,22 @@ wire [2:0] scale = status[11:9];
 wire [2:0] sl = scale ? scale - 1'd1 : 3'd0;
 wire       scandoubler = (scale || forced_scandoubler);
 
-video_mixer #(.LINE_LENGTH(520),.GAMMA(1)) video_mixer
+wire ce_pix = clk_sys;
+
+video_mixer video_mixer
 (
 	.*,
 
-	.clk_vid(CLK_VIDEO),
+	.clk_sys(CLK_VIDEO),
 	.ce_pix_out(CE_PIXEL),
 
 	.scanlines(0),
 	.hq2x(scale==1),
 	.mono(0),
 
-	.R({R,R[4:2]}),
-	.G({G,G[4:2]}),
-	.B({B,B[4:2]})
+	.R({R,R}),
+	.G({G,G}),
+	.B({B,B})
 );
 
 endmodule
